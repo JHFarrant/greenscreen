@@ -18,7 +18,8 @@
 
     <div class="template-full-screen widescreen">
       <div class="main-window">
-        <iframe src="{{ mainContentUrl }}"></iframe>
+        <iframe ng-hide="mainContentHideA" src="{{ mainContentUrlA }}"></iframe>
+	    <iframe ng-hide="mainContentHideB" src="{{ mainContentUrlB }}"></iframe>
       </div>
     </div>
 

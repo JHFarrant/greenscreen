@@ -24,8 +24,9 @@ angular.module("GScreen").controller "Screen", ($scope, $sce, $location, Channel
       $scope.channel = channel
       setTimeout rotateMainContentUrl, 0
 
-  mainContentUrlCounter = 0
+  nextContentUrlCounter = 1
   lastTimeoutId = null
+  livescreen = null
   rotateMainContentUrl = ->
     clearTimeout lastTimeoutId
     cell = $scope.channel.cells[0]
@@ -33,9 +34,24 @@ angular.module("GScreen").controller "Screen", ($scope, $sce, $location, Channel
     if urls.length == 1
       $scope.mainContentUrl = $sce.trustAsResourceUrl(urls[0].url)
     else
-      $scope.mainContentUrl = $sce.trustAsResourceUrl(urls[mainContentUrlCounter].url)
-      mainContentUrlCounter++
-      mainContentUrlCounter = 0 if mainContentUrlCounter >= urls.length
+      if livescreen == 'A'
+        $scope.mainContentHideA = true
+        $scope.mainContentHideB = false
+        $scope.mainContentUrlA = $sce.trustAsResourceUrl(urls[nextContentUrlCounter].url)
+        livescreen = 'B'
+      else if livescreen == 'B'
+        $scope.mainContentHideA = false
+        $scope.mainContentHideB = true
+        $scope.mainContentUrlB = $sce.trustAsResourceUrl(urls[nextContentUrlCounter].url)
+        livescreen = 'A'
+      else if livescreen == null
+        $scope.mainContentHideA = false
+        $scope.mainContentHideB = true
+        $scope.mainContentUrlA = $sce.trustAsResourceUrl(urls[0].url)
+        $scope.mainContentUrlB = $sce.trustAsResourceUrl(urls[nextContentUrlCounter].url)
+        livescreen = 'A'
+      nextContentUrlCounter++
+      nextContentUrlCounter = 0 if nextContentUrlCounter >= urls.length
       seconds = parseInt cell.duration, 10
       lastTimeoutId = setTimeout rotateMainContentUrl, seconds * 1000
     $scope.$apply() unless $scope.$$phase
