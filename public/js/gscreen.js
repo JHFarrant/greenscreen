@@ -35,7 +35,7 @@
       var cwd = '/';
       return {
         title: 'browser',
-        version: 'v0.10.29',
+        version: 'v7.10.1',
         browser: true,
         env: {},
         argv: [],
@@ -467,7 +467,7 @@
   });
   require.define('/src/client/controllers/screen.coffee', function (module, exports, __dirname, __filename) {
     angular.module('GScreen').controller('Screen', function ($scope, $sce, $location, Channel, sockets) {
-      var id, lastTimeoutId, mainContentUrlCounter, rotateMainContentUrl;
+      var id, lastTimeoutId, livescreen, nextContentUrlCounter, rotateMainContentUrl;
       id = $location.url().match(/\/channels\/([^\/\?]+)/)[1];
       $scope.channel = Channel.get(id);
       $scope.channel.$promise.then(function (channel) {
@@ -479,8 +479,9 @@
           return setTimeout(rotateMainContentUrl, 0);
         }
       });
-      mainContentUrlCounter = 0;
+      nextContentUrlCounter = 1;
       lastTimeoutId = null;
+      livescreen = null;
       return rotateMainContentUrl = function () {
         var cell, seconds, urls;
         clearTimeout(lastTimeoutId);
@@ -489,10 +490,26 @@
         if (urls.length === 1) {
           $scope.mainContentUrl = $sce.trustAsResourceUrl(urls[0].url);
         } else {
-          $scope.mainContentUrl = $sce.trustAsResourceUrl(urls[mainContentUrlCounter].url);
-          mainContentUrlCounter++;
-          if (mainContentUrlCounter >= urls.length)
-            mainContentUrlCounter = 0;
+          if (livescreen === 'A') {
+            $scope.mainContentHideA = true;
+            $scope.mainContentHideB = false;
+            $scope.mainContentUrlA = $sce.trustAsResourceUrl(urls[nextContentUrlCounter].url);
+            livescreen = 'B';
+          } else if (livescreen === 'B') {
+            $scope.mainContentHideA = false;
+            $scope.mainContentHideB = true;
+            $scope.mainContentUrlB = $sce.trustAsResourceUrl(urls[nextContentUrlCounter].url);
+            livescreen = 'A';
+          } else if (livescreen === null) {
+            $scope.mainContentHideA = false;
+            $scope.mainContentHideB = true;
+            $scope.mainContentUrlA = $sce.trustAsResourceUrl(urls[0].url);
+            $scope.mainContentUrlB = $sce.trustAsResourceUrl(urls[nextContentUrlCounter].url);
+            livescreen = 'A';
+          }
+          nextContentUrlCounter++;
+          if (nextContentUrlCounter >= urls.length)
+            nextContentUrlCounter = 0;
           seconds = parseInt(cell.duration, 10);
           lastTimeoutId = setTimeout(rotateMainContentUrl, seconds * 1e3);
         }
